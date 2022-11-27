@@ -1,7 +1,8 @@
 import csv
 import math
 from openpyxl import Workbook
-from openpyxl.styles import Font, Border, Side
+from openpyxl.styles import NamedStyle, Font, Border, Side
+from openpyxl.worksheet.dimensions import ColumnDimension, DimensionHolder
 from openpyxl.styles.numbers import FORMAT_PERCENTAGE_00
 from openpyxl.utils import get_column_letter
 from datetime import datetime
@@ -34,6 +35,60 @@ class DataSet:
     def __init__(self, file_name, vacancies_objects):
         self.file_name = file_name
         self.vacancies_objects = [Vacancy(row) for row in vacancies_objects if None not in row and '' not in row]
+        self.statistic = []
+
+    def calculateStatistics(self, data, profession_name):
+        salary_by_years = {}
+        salary_by_years_profession = {}
+        sum_salary_by_city = {}
+        salary_by_city = {}
+        number_vac_by_years = {}
+        number_profession_by_years = {}
+        number_vac_by_city = {}
+        percentage_vac_by_city = {}
+        for vacancy in data.vacancies_objects:
+            year = vacancy.published_at.year
+            city = vacancy.area_name
+            number_vac_by_years[year] = number_vac_by_years.get(year, 0) + 1
+            salary_by_years[year] = salary_by_years.get(year, 0) + vacancy.salary.convert_to_rubles()
+            number_vac_by_city[city] = number_vac_by_city.get(city, 0) + 1
+            sum_salary_by_city[city] = sum_salary_by_city.get(city, 0) + vacancy.salary.convert_to_rubles()
+            salary_by_years_profession.setdefault(year, 0)
+            number_profession_by_years.setdefault(year, 0)
+            if profession_name in vacancy.name:
+                salary_by_years_profession[year] = salary_by_years_profession.get(year,
+                                                                                  0) + vacancy.salary.convert_to_rubles()
+                number_profession_by_years[year] = number_profession_by_years.get(year, 0) + 1
+
+        for year in number_vac_by_years.keys():
+            salary_by_years[year] = math.floor(salary_by_years[year] / number_vac_by_years[year])
+
+        for year in number_profession_by_years.keys():
+            if number_profession_by_years[year] != 0:
+                salary_by_years_profession[year] = math.floor(
+                    salary_by_years_profession[year] / number_profession_by_years[year])
+
+        for city in number_vac_by_city.keys():
+            proportion_vacancy = number_vac_by_city.get(city) / len(data.vacancies_objects)
+            if proportion_vacancy >= 0.01:
+                percentage_vac_by_city[city] = round(proportion_vacancy, 4)
+                salary_by_city[city] = math.floor(sum_salary_by_city[city] / number_vac_by_city.get(city))
+
+        sorted_salary_by_city = dict(sorted(salary_by_city.items(), key=lambda x: -x[1])[:10])
+        sorted_percentage_vac_by_city = dict(sorted(percentage_vac_by_city.items(), key=lambda x: -x[1])[:10])
+
+        self.statistic = [salary_by_years, number_vac_by_years, salary_by_years_profession, number_profession_by_years,
+                          sorted_salary_by_city, sorted_percentage_vac_by_city]
+
+        return self.statistic
+
+    def print_statistic(self):
+        print(f'Динамика уровня зарплат по годам: {self.statistic[0]}')
+        print(f'Динамика количества вакансий по годам: {self.statistic[1]}')
+        print(f'Динамика уровня зарплат по годам для выбранной профессии: {self.statistic[2]}')
+        print(f'Динамика количества вакансий по годам для выбранной профессии: {self.statistic[3]}')
+        print(f'Уровень зарплат по городам (в порядке убывания): {self.statistic[4]}')
+        print(f'Доля вакансий по городам (в порядке убывания): {self.statistic[5]}')
 
 
 class Vacancy:
@@ -124,7 +179,7 @@ class Report:
                 new_column_length = max(len(str(cell.value)) for cell in column_cells)
                 new_column_letter = (get_column_letter(column_cells[0].column))
                 if new_column_length > 0:
-                    ws.column_dimensions[new_column_letter].width = new_column_length*1.20
+                    ws.column_dimensions[new_column_letter].width = new_column_length * 1.20
 
             side = Side(style='thin', color="000000")
             for cell in ws._cells.values():
@@ -148,8 +203,8 @@ class Report:
         for year in number_vac_by_years.keys():
             ws[row][0].value = year
             ws[row][1].value = salary_by_years[year]
-            ws[row][2].value = number_vac_by_years[year]
-            ws[row][3].value = salary_by_years_profession[year]
+            ws[row][2].value = salary_by_years_profession[year]
+            ws[row][3].value = number_vac_by_years[year]
             ws[row][4].value = number_profession_by_years[year]
             row += 1
 
@@ -183,59 +238,6 @@ def csv_reader(file_name):
         return data_set, list_naming
 
 
-def calculate_statistics(data, profession_name):
-    salary_by_years = {}
-    salary_by_years_profession = {}
-    sum_salary_by_city = {}
-    salary_by_city = {}
-    number_vac_by_years = {}
-    number_profession_by_years = {}
-    number_vac_by_city = {}
-    percentage_vac_by_city = {}
-    for vacancy in data.vacancies_objects:
-        year = vacancy.published_at.year
-        city = vacancy.area_name
-        number_vac_by_years[year] = number_vac_by_years.get(year, 0) + 1
-        salary_by_years[year] = salary_by_years.get(year, 0) + vacancy.salary.convert_to_rubles()
-        number_vac_by_city[city] = number_vac_by_city.get(city, 0) + 1
-        sum_salary_by_city[city] = sum_salary_by_city.get(city, 0) + vacancy.salary.convert_to_rubles()
-        salary_by_years_profession.setdefault(year, 0)
-        number_profession_by_years.setdefault(year, 0)
-        if profession_name in vacancy.name:
-            salary_by_years_profession[year] = salary_by_years_profession.get(year,
-                                                                              0) + vacancy.salary.convert_to_rubles()
-            number_profession_by_years[year] = number_profession_by_years.get(year, 0) + 1
-
-    for year in number_vac_by_years.keys():
-        salary_by_years[year] = math.floor(salary_by_years[year] / number_vac_by_years[year])
-
-    for year in number_profession_by_years.keys():
-        if number_profession_by_years[year] != 0:
-            salary_by_years_profession[year] = math.floor(
-                salary_by_years_profession[year] / number_profession_by_years[year])
-
-    for city in number_vac_by_city.keys():
-        proportion_vacancy = number_vac_by_city.get(city) / len(data.vacancies_objects)
-        if proportion_vacancy >= 0.01:
-            percentage_vac_by_city[city] = round(proportion_vacancy, 4)
-            salary_by_city[city] = math.floor(sum_salary_by_city[city] / number_vac_by_city.get(city))
-
-    sorted_salary_by_city = dict(sorted(salary_by_city.items(), key=lambda x: -x[1])[:10])
-    sorted_percentage_vac_by_city = dict(sorted(percentage_vac_by_city.items(), key=lambda x: -x[1])[:10])
-
-    return [salary_by_years, number_vac_by_years, salary_by_years_profession, number_profession_by_years,
-            sorted_salary_by_city, sorted_percentage_vac_by_city]
-
-
-def print_statistic(statistic):
-    print(f'Динамика уровня зарплат по годам: {statistic[0]}')
-    print(f'Динамика количества вакансий по годам: {statistic[1]}')
-    print(f'Динамика уровня зарплат по годам для выбранной профессии: {statistic[2]}')
-    print(f'Динамика количества вакансий по годам для выбранной профессии: {statistic[3]}')
-    print(f'Уровень зарплат по городам (в порядке убывания): {statistic[4]}')
-    print(f'Доля вакансий по городам (в порядке убывания): {statistic[5]}')
-
-
 def main():
     name_file = input('Введите название файла: ')
     input_data = []
@@ -251,12 +253,16 @@ def main():
         print('Нет данных')
     else:
         profession_name = input_connect.filter_parameter.split(': ')[1]
-        statistic = calculate_statistics(data_set, profession_name)
+        statistic = data_set.calculateStatistics(data_set, profession_name)
         sheet1_headlines = {'A': 'Год', 'B': 'Средняя зарплата', 'C': f'Средняя зарплата - {profession_name}',
                             'D': 'Количество вакансий', 'E': f'Количество вакансий - {profession_name}'}
         sheet2_headlines = {'A': 'Город', 'B': 'Уровень зарплат', 'D': 'Город', 'E': 'Доля вакансий'}
         report = Report(['Статистика по годам', 'Статистика по городам'], [sheet1_headlines, sheet2_headlines])
         report.generate_excel(statistic)
+
+
+def get_tabular_statistics():
+    main()
 
 
 if __name__ == '__main__':
