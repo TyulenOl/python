@@ -1,7 +1,7 @@
 *.csv
 *.xlsx
+
 *.png
-*.bak
 
 .idea
 

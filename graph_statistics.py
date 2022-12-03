@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import re
 from datetime import datetime
+import doctest
 
 currency_to_rub = {"AZN": 35.68,
                    "BYR": 23.91,
@@ -27,12 +28,43 @@ reverse_naming = {'Навыки': 'key_skills', 'Оклад': 'salary', 'Дат�
 
 
 class DataSet:
+    """Класс для хранения и обработки данных и статистики.
+
+    Attributes:
+        file_name (str): Имя исходного файла с данными
+        vacancies_objects (list[Vacancy]): Лист вакансий со всеми заполненными значениями
+        statistic (list[dict[int: int or str: int]]): Валюта оклада
+    """
+
     def __init__(self, file_name, vacancies_objects):
+        """Инициализирует объект DataSet.
+
+        Args:
+            file_name (str): Имя исходного файла с данными
+            vacancies_objects (list): Лист вакансий для обработки
+        """
+
         self.file_name = file_name
         self.vacancies_objects = [Vacancy(row) for row in vacancies_objects if None not in row and '' not in row]
         self.statistic = []
 
-    def calculateStatistics(self, data, profession_name):
+    def calculate_statistics(self, data, profession_name):
+        """Вычисляет статистику по вакансиям: динамика уровня зарплат по годам, динамика количества вакансий по
+        годам, динамика уровня зарплат по годам для выбранной профессии, динамика количества вакансий по годам для
+        выбранной профессии, уровень зарплат по городам (в порядке убывания) - только первые 10 значений,
+        доля вакансий по городам (в порядке убывания) - только первые 10 значений.
+
+        Args:
+            data (DataSet): Данные по которым будет происходить сбор статистики
+            profession_name(str): Название професии для сбора более конкретной статистики по данной професии
+
+        Returns:
+            list[dict[int: int or str: int]]: Собранная сатистика: динамика уровня зарплат по годам, динамика количества
+             вакансий по годам, динамика уровня зарплат по годам для выбранной профессии, динамика количества вакансий
+             по годам для выбранной профессии, уровень зарплат по городам (в порядке убывания) - только первые 10
+             значений, доля вакансий по городам (в порядке убывания) - только первые 10 значений
+        """
+
         salary_by_years = {}
         salary_by_years_profession = {}
         sum_salary_by_city = {}
@@ -78,6 +110,12 @@ class DataSet:
         return self.statistic
 
     def print_statistic(self):
+        """Печатает статистику: динамика уровня зарплат по годам,динамика количества вакансий по годам,
+        динамика уровня зарплат по годам для выбранной профессии, динамика количества вакансий по годам для выбранной
+        профессии, уровень зарплат по городам (в порядке убывания) - только первые 10 значений, доля вакансий по
+        городам (в порядке убывания) - только первые 10 значений.
+        """
+
         print(f'Динамика уровня зарплат по годам: {self.statistic[0]}')
         print(f'Динамика количества вакансий по годам: {self.statistic[1]}')
         print(f'Динамика уровня зарплат по годам для выбранной профессии: {self.statistic[2]}')
@@ -87,81 +125,92 @@ class DataSet:
 
 
 class Vacancy:
+    """Класс для представления вакансии.
+
+    Attributes:
+        name (str): Название профессии
+        salary (Salary): Оклад
+        area_name (): Название региона
+        published_at (): Дата публикации вакансии
+    """
+
     def __init__(self, vacancy):
-        if len(vacancy) == 6:
-            self.name = vacancy[0].replace('\xa0', '\x20')
-            self.salary = Salary([vacancy[1], vacancy[2], vacancy[3]])
-            self.area_name = vacancy[4]
-            self.published_at = datetime.strptime(vacancy[5], "%Y-%m-%dT%H:%M:%S%z")
-        else:
-            self.name = vacancy[0].replace('\xa0', '\x20')
-            self.description = vacancy[1]
-            self.key_skills = vacancy[2]
-            self.experience_id = substitution_work_experience[vacancy[3]]
-            self.premium = 'Да' if vacancy[4] == 'True' else 'Нет' if vacancy[4] == 'False' else vacancy[4]
-            self.employer_name = vacancy[5]
-            self.salary = Salary([vacancy[6], vacancy[7], vacancy[8], vacancy[9]])
-            self.area_name = vacancy[10]
-            self.published_at = datetime.strptime(vacancy[11], "%Y-%m-%dT%H:%M:%S%z")
+        """Устанавливает все необходимые атрибуты для объекта Vacancy.
+
+        Args: vacancy (list): Лист данных о вакансии состоящий из: название профессии, оклад, название региона, дата
+        публикации вакансии.
+        """
+
+        self.name = vacancy[0].replace('\xa0', '\x20')
+        self.salary = Salary([vacancy[1], vacancy[2], vacancy[3]])
+        self.area_name = vacancy[4]
+        self.published_at = datetime.strptime(vacancy[5], "%Y-%m-%dT%H:%M:%S%z")
 
 
 class Salary:
+    """Класс для представления оклада.
+
+    Attributes:
+        salary_from (int): Нижняя граница оклада
+        salary_to (int): Верхняя граница оклада
+        salary_currency (str): Валюта оклада
+    """
+
     def __init__(self, salary):
-        if len(salary) == 3:
-            self.salary_from = int(float(salary[0]))
-            self.salary_to = int(float(salary[1]))
-            self.salary_currency = salary[2]
-            self.average_salary = (self.salary_from + self.salary_to) / 2
-        else:
-            self.salary_from = int(float(salary[0]))
-            self.salary_to = int(float(salary[1]))
-            self.salary_gross = 'С вычетом налогов' if salary[2] == "False" else 'Без вычета налогов'
-            self.salary_currency = salary[3]
-            self.salary = f'{self.salary_from:_} - {self.salary_to:_} ({self.salary_currency} ({self.salary_gross}))'.replace(
-                '_', ' ')
+        """Инициализирует объект Salary.
+
+        Args:
+            salary_from (str or int or float): Нижняя граница оклада
+            salary_to (str or int or float): Нижняя граница оклада
+            salary_currency (str): Нижняя граница оклада
+        """
+
+        self.salary_from = int(float(salary[0]))
+        self.salary_to = int(float(salary[1]))
+        self.salary_currency = salary[2]
 
     def convert_to_rubles(self):
-        return (((float(self.salary_from) + float(self.salary_to)) * float(currency_to_rub[self.salary_currency])) / 2)
+        """Вычисляет среднее значение зарплаты и конвертирует в рубли, при помощи словоря - currency_to_rub.
 
+        Returns:
+            float: Cреднее значение зарплаты в рублях
+        """
 
-class InputConnect:
-    def __init__(self, input_data):
-        self.filter_parameter = input_data[0]
-        self.sort_parameter = input_data[1]
-        self.reverse_sort_order = True if input_data[2] == 'Да' else False if input_data[2] == 'Нет' or input_data[
-            2] == '' else None
-        self.table_from_to = input_data[3]
-        self.desired_column_names = input_data[4]
-
-    def data_processing(self):
-        if self.filter_parameter != '' and ': ' not in self.filter_parameter:
-            print('Формат ввода некорректен')
-            return True
-        if self.filter_parameter != '':
-            try:
-                reverse_naming[self.filter_parameter.split(': ')[0]]
-            except Exception:
-                print('Параметр поиска некорректен')
-                return True
-
-        if self.sort_parameter != '':
-            try:
-                reverse_naming[self.sort_parameter]
-            except Exception:
-                print('Параметр сортировки некорректен')
-                return True
-        if self.reverse_sort_order is None:
-            print('Порядок сортировки задан некорректно')
-            return True
-        return False
+        return ((float(self.salary_from) + float(self.salary_to)) / 2) * float(currency_to_rub[self.salary_currency])
 
 
 class Report:
-    def __init__(self, sheet_titles, legends):
-        self.sheet_titles = sheet_titles
+    """Класс для формирования отчета в табличном виде.
+
+    Attributes:
+        titles (list[str]): Названия графиков
+        legends (list[list[str]]): Подписи(легенды) для графиков
+        fig (Figure): Контейнер самого верхнего уровня, та область на которой все нарисовано
+        ax1 (AxesSubplot): Первый график
+        ax2 (AxesSubplot): Второй график
+        ax3 (AxesSubplot): Третий график
+        ax4 (AxesSubplot): Четвертый график
+    """
+
+    def __init__(self, titles, legends):
+        """Инициализирует графики.
+
+        Args:
+            titles (list[str]): Названия графиков
+            legends (list[list[str]]): Подписи(легенды) для графиков
+        """
+
+        self.titles = titles
         self.legends = legends
+        self.fig, ((self.ax1, self.ax2), (self.ax3, self.ax4)) = plt.subplots(nrows=2, ncols=2)
 
     def generate_image(self, statistic):
+        """Создает в каталоге изображение со всеми необходимыми графиками на основе статистики.
+
+        Args:
+            statistic (list[dict[int: int or str: int]]): Статистика, на основе которой строятся графики
+        """
+
         years_labels = list(statistic[1].keys())
         cities_labels = list(statistic[5].keys())
         salary_by_years = list(statistic[0].values())
@@ -171,19 +220,27 @@ class Report:
         salary_by_city = list(statistic[4].values())
         percentage_vac_by_city = list(statistic[5].values())
 
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(nrows=2, ncols=2)
-
-        self.generate_vertical_graph(ax1, years_labels, [salary_by_years, salary_by_years_profession],
-                                     self.sheet_titles[0], self.legends[0])
-        self.generate_vertical_graph(ax2, years_labels, [number_vac_by_years, number_profession_by_years],
-                                     self.sheet_titles[1], self.legends[1])
-        self.generate_horizontal_graph(ax3, cities_labels, salary_by_city, self.sheet_titles[2])
-        self.generate_pie_graph(ax4, cities_labels, percentage_vac_by_city, self.sheet_titles[3])
+        self.generate_vertical_graph(self.ax1, years_labels, [salary_by_years, salary_by_years_profession],
+                                     self.titles[0], self.legends[0])
+        self.generate_vertical_graph(self.ax2, years_labels, [number_vac_by_years, number_profession_by_years],
+                                     self.titles[1], self.legends[1])
+        self.generate_horizontal_graph(self.ax3, cities_labels, salary_by_city, self.titles[2])
+        self.generate_pie_graph(self.ax4, cities_labels, percentage_vac_by_city, self.titles[3])
 
         plt.tight_layout(pad=0.4, w_pad=0.5, h_pad=1.0)
         plt.savefig('graph.png')
 
-    def generate_vertical_graph(self, ax, labels, data, title, legends):
+    @staticmethod
+    def generate_vertical_graph(ax, labels, data, title, legends):
+        """Генерирует графики с вертикально направленными столбиками данных.
+
+        Args:
+            ax (AxesSubplot): Область на которой отражаются графики
+            labels (list[int]): Подписи оси Ox
+            data (list[list[int]]): Данные на основе которых строится график
+            title (str): Название для графика
+            legends (list[str]): Подписи(легенды) к графику
+        """
         y_pos = np.arange(len(labels))
         width = 0.35
 
@@ -196,7 +253,16 @@ class Report:
         ax.grid(axis='y')
         ax.legend(fontsize=8)
 
-    def generate_horizontal_graph(self, ax, labels, data, title):
+    @staticmethod
+    def generate_horizontal_graph(ax, labels, data, title):
+        """Генерирует графики с горизонтально направленными столбиками данных.
+
+        Args:
+            ax (AxesSubplot): Область на которой отражаются графики
+            labels (list[int]): Подписи оси Oy
+            data (list[list[int]]): Данные на основе которых строится график
+            title (str): Название для графика
+        """
         new_labels = [re.sub('-', '-\n', label, count=1) if '-' in label else re.sub(' ', '\n', label, count=1) for
                       label in labels]
         y_pos = np.arange(len(new_labels))
@@ -208,7 +274,17 @@ class Report:
         ax.grid(axis='x')
         ax.set_title(title)
 
-    def generate_pie_graph(self, ax, labels, data, title):
+    @staticmethod
+    def generate_pie_graph(ax, labels, data, title):
+        """Генерирует круговые диаграммы.
+
+        Args:
+            ax (AxesSubplot): Область на которой отражаются графики
+            labels (list[int]): Подписи для долей
+            data (list[list[int]]): Данные на основе которых строится график
+            title (str): Название для графика
+        """
+
         data = list(map(lambda x: x * 100, data))
         data.insert(0, 100 - sum(data))
         labels.insert(0, 'Другие')
@@ -217,6 +293,14 @@ class Report:
 
 
 def csv_reader(file_name):
+    """Открывает и читает необходимый файл, а также возвращяет полученный результат.
+
+    Args:
+       file_name (str): Название файла для чтения
+
+    Returns:
+        DataSet, list: Полученные данные из прочитанного файла, строчка с названиями столбцов
+    """
     with open(file_name, encoding="utf-8-sig") as file:
         reader = list(csv.reader(file))
         try:
@@ -230,20 +314,14 @@ def csv_reader(file_name):
 
 def main():
     name_file = input('Введите название файла: ')
-    input_data = []
-    input_data.append(f"Название: {input('Введите название профессии: ')}")
-    list(map(lambda x: input_data.append(x), ['', '', '', [], ['']]))
-    input_connect = InputConnect(input_data)
-    if input_connect.data_processing():
-        return
+    profession_name = input('Введите название профессии: ')
     data_set, list_naming = csv_reader(name_file)
     if list_naming is None:
         print('Пустой файл')
     elif len(data_set.vacancies_objects) == 0:
         print('Нет данных')
     else:
-        profession_name = input_connect.filter_parameter.split(': ')[1]
-        statistic = data_set.calculateStatistics(data_set, profession_name)
+        statistic = data_set.calculate_statistics(data_set, profession_name)
         titles = ['Уровень зарплат по годам', 'Количество вакансий по годам', 'Уровень зарплат по городам',
                   'Доля вакансий по городам']
         legends = [['средняя з/п', f'з/п {profession_name.lower()}'],
@@ -252,8 +330,25 @@ def main():
         report.generate_image(statistic)
 
 
-def get_graph_statistics():
-    main()
+def get_graph_statistics(name_file, profession_name, titles):
+    """Метод запускающий программу.
+
+    Args:
+       name_file (str): Название файла
+       profession_name (str): Название профессии
+       titles (list[str]): Названия графиков
+    """
+    data_set, list_naming = csv_reader(name_file)
+    if list_naming is None:
+        print('Пустой файл')
+    elif len(data_set.vacancies_objects) == 0:
+        print('Нет данных')
+    else:
+        statistic = data_set.calculate_statistics(data_set, profession_name)
+        legends = [['средняя з/п', f'з/п {profession_name.lower()}'],
+                   ['Количество вакансий', f'Количество ваканси\n{profession_name.lower()}']]
+        report = Report(titles, legends)
+        report.generate_image(statistic)
 
 
 if __name__ == '__main__':
