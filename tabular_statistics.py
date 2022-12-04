@@ -457,4 +457,4 @@ def get_tabular_statistics(name_file, profession_name, sheet_titles, sheet_headl
 
 
 if __name__ == '__main__':
-    main()
+    main() 
