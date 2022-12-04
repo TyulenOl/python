@@ -1,5 +1,4 @@
 ## Задание 2.3.2:
----
 * ### Тесты doctest:
    ![doctest](https://user-images.githubusercontent.com/100992984/205491915-e05a7eb7-8e4a-4ef4-a5aa-f802bc6340fe.png)
 * ### Тесты unittest:
