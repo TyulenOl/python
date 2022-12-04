@@ -148,4 +148,4 @@ class CsvReaderTests(TestCase):
         self.assertEqual(csv_reader('unittest.csv')[0].file_name, 'unittest.csv')
 
     def test_csv_reader_dataset_vacancies_objects_length(self):
-        self.assertEqual(len(csv_reader('unittest.csv')[0].vacancies_objects), 3)
+        self.assertEqual(len(csv_reader('unittest.csv')[0].vacancies_objects), 3) 
