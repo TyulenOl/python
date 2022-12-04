@@ -73,7 +73,7 @@ class DataSet:
         self.vacancies_objects = [Vacancy(row) for row in vacancies_objects if None not in row and '' not in row]
         self.statistic = []
 
-    def calculate_statistics(self, data, profession_name):
+    def calculate_statistics(self, profession_name):
         """Вычисляет статистику по вакансиям: динамика уровня зарплат по годам, динамика количества вакансий по
         годам, динамика уровня зарплат по годам для выбранной профессии, динамика количества вакансий по годам для
         выбранной профессии, уровень зарплат по городам (в порядке убывания) - только первые 10 значений,
@@ -102,7 +102,7 @@ class DataSet:
         number_profession_by_years = {}
         number_vac_by_city = {}
         percentage_vac_by_city = {}
-        for vacancy in data.vacancies_objects:
+        for vacancy in self.vacancies_objects:
             year = vacancy.published_at.year
             city = vacancy.area_name
             number_vac_by_years[year] = number_vac_by_years.get(year, 0) + 1
@@ -125,7 +125,7 @@ class DataSet:
                     salary_by_years_profession[year] / number_profession_by_years[year])
 
         for city in number_vac_by_city.keys():
-            proportion_vacancy = number_vac_by_city.get(city) / len(data.vacancies_objects)
+            proportion_vacancy = number_vac_by_city.get(city) / len(self.vacancies_objects)
             if proportion_vacancy >= 0.01:
                 percentage_vac_by_city[city] = round(proportion_vacancy, 4)
                 salary_by_city[city] = math.floor(sum_salary_by_city[city] / number_vac_by_city.get(city))
@@ -448,7 +448,7 @@ def get_graph_statistics(name_file, profession_name, titles):
     elif len(data_set.vacancies_objects) == 0:
         print('Нет данных')
     else:
-        statistic = data_set.calculate_statistics(data_set, profession_name)
+        statistic = data_set.calculate_statistics(profession_name)
         legends = [['средняя з/п', f'з/п {profession_name.lower()}'],
                    ['Количество вакансий', f'Количество ваканси\n{profession_name.lower()}']]
         report = Report(titles, legends)
