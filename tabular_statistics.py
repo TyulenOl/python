@@ -411,9 +411,6 @@ def main():
     name_file = input('Введите название файла: ')
     profession_name = input('Введите название профессии: ')
     data_set, list_naming = csv_reader(name_file)
-    data_set = DataSet('unittest.csv', [['IT аналитик', '32000.0', '56000.0', 'RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300'],
-                ['PHP-программист', '41000.0', '67000.0', 'RUR', 'Москва', '2007-12-03T22:39:07+0300'],
-                ['Web-программист', '30000.0', '40000.0', 'RUR', 'Москва', '2008-12-03T19:10:20+0300']])
     if list_naming is None:
         print('Пустой файл')
     elif len(data_set.vacancies_objects) == 0:
