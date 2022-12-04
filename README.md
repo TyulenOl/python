@@ -32,6 +32,6 @@
 * ### Результаты измерения 3-х функций форматирования даты и времени:
    ![date_simple](https://user-images.githubusercontent.com/100992984/205505539-599613eb-74fc-423b-bf0a-c73ca1eaca78.png)
    ![date_regex](https://user-images.githubusercontent.com/100992984/205505543-ad99f90b-6811-4e79-a242-d321b595c938.png)
-   ![date_strptime2](https://user-images.githubusercontent.com/100992984/205505545-322b47b3-6b57-41a8-9566-42c7810efadf.png)
+   ![date_strptime2](https://user-images.githubusercontent.com/100992984/205505545-322b47b3-6b57-41a8-9566-42c7810efadf.png)  
    Наиболее быстрой функцией форматирования даты и времени является parse_date_simple
 
