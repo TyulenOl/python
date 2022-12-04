@@ -456,4 +456,5 @@ def get_graph_statistics(name_file, profession_name, titles):
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    doctest.testmod()
