@@ -1,5 +1,7 @@
 import csv
 import math
+import re
+import time
 from openpyxl import Workbook
 from openpyxl.styles import NamedStyle, Font, Border, Side
 from openpyxl.worksheet.dimensions import ColumnDimension, DimensionHolder
@@ -58,12 +60,8 @@ class DataSet:
         'IT аналитик'
         >>> DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].area_name
         'Санкт-Петербург'
-        >>> type(DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].published_at).__name__
-        'datetime'
-        >>> DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].published_at.strftime("%Y-%m-%dT%H:%M:%S%z")
-        '2007-12-03T17:34:36+0300'
-        >>> DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].published_at.strftime("%Y.%m.%d")
-        '2007.12.03'
+        >>> DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].published_at
+        ('2007', '12', '03', '17', '34', '36', '0300')
         >>> type(DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].salary).__name__
         'Salary'
         >>> DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].salary.salary_from
@@ -108,7 +106,7 @@ class DataSet:
         number_vac_by_city = {}
         percentage_vac_by_city = {}
         for vacancy in self.vacancies_objects:
-            year = vacancy.published_at.year
+            year = int(vacancy.published_at[0])
             city = vacancy.area_name
             number_vac_by_years[year] = number_vac_by_years.get(year, 0) + 1
             salary_by_years[year] = salary_by_years.get(year, 0) + vacancy.salary.convert_to_rubles()
@@ -192,10 +190,8 @@ class Vacancy:
         'IT аналитик'
         >>> Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).area_name
         'Санкт-Петербург'
-        >>> type(Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).published_at).__name__
-        'datetime'
-        >>> Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).published_at.strftime("%Y-%m-%dT%H:%M:%S%z")
-        '2007-12-03T17:34:36+0300'
+        >>> Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).published_at
+        ('2007', '12', '03', '17', '34', '36', '0300')
         >>> type(Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).salary).__name__
         'Salary'
         >>> Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).salary.salary_from
@@ -209,7 +205,25 @@ class Vacancy:
         self.name = vacancy[0].replace('\xa0', '\x20')
         self.salary = Salary([vacancy[1], vacancy[2], vacancy[3]])
         self.area_name = vacancy[4]
-        self.published_at = datetime.strptime(vacancy[5], "%Y-%m-%dT%H:%M:%S%z")
+        self.published_at = self.parse_date_simple(vacancy[5])
+        # self.published_at = self.parse_date_regex(vacancy[5])
+        # self.published_at = self.parse_date_strptime(vacancy[5])
+
+    @staticmethod
+    def parse_date_simple(date):
+        date = date.replace('T', '-').replace(':', '-').replace('+', '-')
+        year, month, day, hour, minute, second, timezone = date.split('-')
+        return year, month, day, hour, minute, second, timezone
+
+    # @staticmethod
+    # def parse_date_regex(date):
+    #     year, month, day, hour, minute, second, timezone = re.split("[-T:+]", date)
+    #     return year, month, day, hour, minute, second, timezone
+    #
+    # @staticmethod
+    # def parse_date_strptime(date):
+    #     result = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S%z")
+    #     return result
 
 
 class Salary:
@@ -382,10 +396,8 @@ def csv_reader(file_name):
     'IT аналитик'
     >>> csv_reader('unittest.csv')[0].vacancies_objects[0].area_name
     'Караганда'
-    >>> type(csv_reader('unittest.csv')[0].vacancies_objects[0].published_at).__name__
-    'datetime'
-    >>> csv_reader('unittest.csv')[0].vacancies_objects[0].published_at.strftime("%Y-%m-%dT%H:%M:%S%z")
-    '2015-07-13T17:34:36+0300'
+    >>> csv_reader('unittest.csv')[0].vacancies_objects[0].published_at
+    ('2015', '07', '13', '17', '34', '36', '0300')
     >>> type(csv_reader('unittest.csv')[0].vacancies_objects[0].salary).__name__
     'Salary'
     >>> csv_reader('unittest.csv')[0].vacancies_objects[0].salary.salary_from
@@ -408,12 +420,9 @@ def csv_reader(file_name):
 
 
 def main():
-    # name_file = input('Введите название файла: ')
+    name_file = input('Введите название файла: ')
     profession_name = input('Введите название профессии: ')
-    data_set, list_naming = csv_reader('unittest.csv')
-    data_set = DataSet('unittest.csv', [['IT аналитик', '32000.0', '56000.0', 'RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300'],
-                ['PHP-программист', '41000.0', '67000.0', 'RUR', 'Москва', '2007-12-03T22:39:07+0300'],
-                ['Web-программист', '30000.0', '40000.0', 'RUR', 'Москва', '2008-12-03T19:10:20+0300']])
+    data_set, list_naming = csv_reader(name_file)
     if list_naming is None:
         print('Пустой файл')
     elif len(data_set.vacancies_objects) == 0:
@@ -442,13 +451,10 @@ def get_tabular_statistics(name_file, profession_name, sheet_titles, sheet_headl
     elif len(data_set.vacancies_objects) == 0:
         print('Нет данных')
     else:
-        statistic = data_set.calculate_statistics(data_set, profession_name)
+        statistic = data_set.calculate_statistics(profession_name)
         report = Report(sheet_titles, sheet_headlines)
         report.generate_excel(statistic)
 
 
 if __name__ == '__main__':
-    # main()
-    import doctest
-
-    doctest.testmod()
+    main()

@@ -53,12 +53,8 @@ class DataSet:
         'IT аналитик'
         >>> DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].area_name
         'Санкт-Петербург'
-        >>> type(DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].published_at).__name__
-        'datetime'
-        >>> DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].published_at.strftime("%Y-%m-%dT%H:%M:%S%z")
-        '2007-12-03T17:34:36+0300'
-        >>> DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].published_at.strftime("%Y.%m.%d")
-        '2007.12.03'
+        >>> DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].published_at
+        ('2007', '12', '03', '17', '34', '36', '0300')
         >>> type(DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].salary).__name__
         'Salary'
         >>> DataSet('unittest.csv', [['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]).vacancies_objects[0].salary.salary_from
@@ -73,7 +69,7 @@ class DataSet:
         self.vacancies_objects = [Vacancy(row) for row in vacancies_objects if None not in row and '' not in row]
         self.statistic = []
 
-    def calculate_statistics(self, data, profession_name):
+    def calculate_statistics(self, profession_name):
         """Вычисляет статистику по вакансиям: динамика уровня зарплат по годам, динамика количества вакансий по
         годам, динамика уровня зарплат по годам для выбранной профессии, динамика количества вакансий по годам для
         выбранной профессии, уровень зарплат по городам (в порядке убывания) - только первые 10 значений,
@@ -102,8 +98,8 @@ class DataSet:
         number_profession_by_years = {}
         number_vac_by_city = {}
         percentage_vac_by_city = {}
-        for vacancy in data.vacancies_objects:
-            year = vacancy.published_at.year
+        for vacancy in self.vacancies_objects:
+            year = int(vacancy.published_at[0])
             city = vacancy.area_name
             number_vac_by_years[year] = number_vac_by_years.get(year, 0) + 1
             salary_by_years[year] = salary_by_years.get(year, 0) + vacancy.salary.convert_to_rubles()
@@ -116,25 +112,37 @@ class DataSet:
                                                                                   0) + vacancy.salary.convert_to_rubles()
                 number_profession_by_years[year] = number_profession_by_years.get(year, 0) + 1
 
-        for year in number_vac_by_years.keys():
-            salary_by_years[year] = math.floor(salary_by_years[year] / number_vac_by_years[year])
+        for year in range(2007, 2023):
+            if year in number_vac_by_years.keys():
+                salary_by_years[year] = math.floor(salary_by_years[year] / number_vac_by_years[year])
+            else:
+                number_vac_by_years[year] = 0
+                salary_by_years[year] = 0
 
-        for year in number_profession_by_years.keys():
-            if number_profession_by_years[year] != 0:
-                salary_by_years_profession[year] = math.floor(
-                    salary_by_years_profession[year] / number_profession_by_years[year])
+        for year in range(2007, 2023):
+            if year in number_profession_by_years.keys():
+                if number_profession_by_years[year] != 0:
+                    salary_by_years_profession[year] = math.floor(
+                        salary_by_years_profession[year] / number_profession_by_years[year])
+            else:
+                number_profession_by_years[year] = 0
+                salary_by_years_profession[year] = 0
 
         for city in number_vac_by_city.keys():
-            proportion_vacancy = number_vac_by_city.get(city) / len(data.vacancies_objects)
+            proportion_vacancy = number_vac_by_city.get(city) / len(self.vacancies_objects)
             if proportion_vacancy >= 0.01:
                 percentage_vac_by_city[city] = round(proportion_vacancy, 4)
                 salary_by_city[city] = math.floor(sum_salary_by_city[city] / number_vac_by_city.get(city))
 
+        sorted_salary_by_years = dict(sorted(salary_by_years.items(), key=lambda x: x[0]))
+        sorted_number_vac_by_years = dict(sorted(number_vac_by_years.items(), key=lambda x: x[0]))
+        sorted_salary_by_years_profession = dict(sorted(salary_by_years_profession.items(), key=lambda x: x[0]))
+        sorted_number_profession_by_years = dict(sorted(number_profession_by_years.items(), key=lambda x: x[0]))
         sorted_salary_by_city = dict(sorted(salary_by_city.items(), key=lambda x: -x[1])[:10])
         sorted_percentage_vac_by_city = dict(sorted(percentage_vac_by_city.items(), key=lambda x: -x[1])[:10])
 
-        self.statistic = [salary_by_years, number_vac_by_years, salary_by_years_profession, number_profession_by_years,
-                          sorted_salary_by_city, sorted_percentage_vac_by_city]
+        self.statistic = [sorted_salary_by_years, sorted_number_vac_by_years, sorted_salary_by_years_profession,
+                          sorted_number_profession_by_years, sorted_salary_by_city, sorted_percentage_vac_by_city]
 
         return self.statistic
 
@@ -175,10 +183,8 @@ class Vacancy:
         'IT аналитик'
         >>> Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).area_name
         'Санкт-Петербург'
-        >>> type(Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).published_at).__name__
-        'datetime'
-        >>> Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).published_at.strftime("%Y-%m-%dT%H:%M:%S%z")
-        '2007-12-03T17:34:36+0300'
+        >>> Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).published_at
+        ('2007', '12', '03', '17', '34', '36', '0300')
         >>> type(Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).salary).__name__
         'Salary'
         >>> Vacancy(['IT аналитик', '35000.0', '45000.0','RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']).salary.salary_from
@@ -192,7 +198,25 @@ class Vacancy:
         self.name = vacancy[0].replace('\xa0', '\x20')
         self.salary = Salary([vacancy[1], vacancy[2], vacancy[3]])
         self.area_name = vacancy[4]
-        self.published_at = datetime.strptime(vacancy[5], "%Y-%m-%dT%H:%M:%S%z")
+        self.published_at = self.parse_date_simple(vacancy[5])
+        # self.published_at = self.parse_date_regex(vacancy[5])
+        # self.published_at = self.parse_date_strptime(vacancy[5])
+
+    @staticmethod
+    def parse_date_simple(date):
+        date = date.replace('T', '-').replace(':', '-').replace('+', '-')
+        year, month, day, hour, minute, second, timezone = date.split('-')
+        return year, month, day, hour, minute, second, timezone
+
+    # @staticmethod
+    # def parse_date_regex(date):
+    #     year, month, day, hour, minute, second, timezone = re.split("[-T:+]", date)
+    #     return year, month, day, hour, minute, second, timezone
+    #
+    # @staticmethod
+    # def parse_date_strptime(date):
+    #     result = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S%z")
+    #     return result
 
 
 class Salary:
@@ -384,17 +408,15 @@ def csv_reader(file_name):
     >>> csv_reader('unittest.csv')[0].file_name
     'unittest.csv'
     >>> len(csv_reader('unittest.csv')[0].vacancies_objects)
-    1
+    3
     >>> type(csv_reader('unittest.csv')[0].vacancies_objects[0]).__name__
     'Vacancy'
     >>> csv_reader('unittest.csv')[0].vacancies_objects[0].name
     'IT аналитик'
     >>> csv_reader('unittest.csv')[0].vacancies_objects[0].area_name
     'Караганда'
-    >>> type(csv_reader('unittest.csv')[0].vacancies_objects[0].published_at).__name__
-    'datetime'
-    >>> csv_reader('unittest.csv')[0].vacancies_objects[0].published_at.strftime("%Y-%m-%dT%H:%M:%S%z")
-    '2015-07-13T17:34:36+0300'
+    >>> csv_reader('unittest.csv')[0].vacancies_objects[0].published_at
+    ('2015', '07', '13', '17', '34', '36', '0300')
     >>> type(csv_reader('unittest.csv')[0].vacancies_objects[0].salary).__name__
     'Salary'
     >>> csv_reader('unittest.csv')[0].vacancies_objects[0].salary.salary_from
@@ -425,7 +447,7 @@ def main():
     elif len(data_set.vacancies_objects) == 0:
         print('Нет данных')
     else:
-        statistic = data_set.calculate_statistics(data_set, profession_name)
+        statistic = data_set.calculate_statistics(profession_name)
         titles = ['Уровень зарплат по годам', 'Количество вакансий по годам', 'Уровень зарплат по городам',
                   'Доля вакансий по городам']
         legends = [['средняя з/п', f'з/п {profession_name.lower()}'],
@@ -448,7 +470,7 @@ def get_graph_statistics(name_file, profession_name, titles):
     elif len(data_set.vacancies_objects) == 0:
         print('Нет данных')
     else:
-        statistic = data_set.calculate_statistics(data_set, profession_name)
+        statistic = data_set.calculate_statistics(profession_name)
         legends = [['средняя з/п', f'з/п {profession_name.lower()}'],
                    ['Количество вакансий', f'Количество ваканси\n{profession_name.lower()}']]
         report = Report(titles, legends)

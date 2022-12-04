@@ -45,16 +45,15 @@ class DataSetTests(TestCase):
         data = [['IT аналитик', '35000.0', '45000.0', 'RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300'],
                 ['PHP-программист', '40000.0', '50000.0', 'RUR', 'Москва', '2007-12-03T22:39:07+0300'],
                 ['Web-программист', '30000.0', '40000.0', 'RUR', 'Москва', '2007-12-03T19:10:20+0300']]
-        self.assertEqual(type(DataSet(file_name, data).vacancies_objects[0].published_at).__name__, 'datetime')
+        self.assertEqual(type(DataSet(file_name, data).vacancies_objects[0].published_at).__name__, 'tuple')
 
     def test_dataset_vacancies_objects_published_at(self):
         file_name = 'unittest.csv'
         data = [['IT аналитик', '35000.0', '45000.0', 'RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300'],
                 ['PHP-программист', '40000.0', '50000.0', 'RUR', 'Москва', '2007-12-03T22:39:07+0300'],
                 ['Web-программист', '30000.0', '40000.0', 'RUR', 'Москва', '2007-12-03T19:10:20+0300']]
-        self.assertEqual(DataSet(file_name, data).vacancies_objects[0].published_at.strftime("%Y-%m-%dT%H:%M:%S%z"), '2007-12-03T17:34:36+0300')
-        self.assertEqual(DataSet(file_name, data).vacancies_objects[2].published_at.strftime("%Y-%m-%dT%H:%M:%S%z"), '2007-12-03T19:10:20+0300')
-        self.assertEqual(DataSet(file_name, data).vacancies_objects[0].published_at.strftime("%Y.%m.%d"), '2007.12.03')
+        self.assertEqual(DataSet(file_name, data).vacancies_objects[0].published_at, ('2007', '12', '03', '17', '34', '36', '0300'))
+        self.assertEqual(DataSet(file_name, data).vacancies_objects[2].published_at, ('2007', '12', '03', '19', '10', '20', '0300'))
 
     def test_dataset_vacancies_objects_salary_type(self):
         file_name = 'unittest.csv'
@@ -96,12 +95,11 @@ class VacancyTests(TestCase):
 
     def test_vacancy_published_at_type(self):
         data = ['Web-программист', '30000.0', '40000.0', 'RUR', 'Москва', '2007-12-03T19:10:20+0300']
-        self.assertEqual(type(Vacancy(data).published_at).__name__, 'datetime')
+        self.assertEqual(type(Vacancy(data).published_at).__name__, 'tuple')
 
     def test_vacancy_published_at(self):
         data = ['Web-программист', '30000.0', '40000.0', 'RUR', 'Москва', '2007-12-03T19:10:20+0300']
-        self.assertEqual(Vacancy(data).published_at.strftime("%Y-%m-%dT%H:%M:%S%z"), '2007-12-03T19:10:20+0300')
-        self.assertEqual(Vacancy(data).published_at.strftime("%d.%m.%Y"), '03.12.2007')
+        self.assertEqual(Vacancy(data).published_at, ('2007', '12', '03', '19', '10', '20', '0300'))
 
     def test_vacancy_salary_type(self):
         data = ['Web-программист', '30000.0', '40000.0', 'RUR', 'Москва', '2007-12-03T19:10:20+0300']
