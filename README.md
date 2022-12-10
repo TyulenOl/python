@@ -34,4 +34,7 @@
    ![date_regex](https://user-images.githubusercontent.com/100992984/205505543-ad99f90b-6811-4e79-a242-d321b595c938.png)
    ![date_strptime2](https://user-images.githubusercontent.com/100992984/205505545-322b47b3-6b57-41a8-9566-42c7810efadf.png)  
    Наиболее быстрой функцией форматирования даты и времени является parse_date_simple
-
+   
+## Задание 3.2.1:
+* ### Папка с разделенными на года csv файлами 
+![Screenshot_11](https://user-images.githubusercontent.com/100992984/206690234-e8b6d315-48c5-4291-866e-731976f0f471.png)

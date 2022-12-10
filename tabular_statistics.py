@@ -40,7 +40,7 @@ class DataSet:
     Attributes:
         file_name (str): Имя исходного файла с данными
         vacancies_objects (list[Vacancy]): Лист вакансий со всеми заполненными значениями
-        statistic (list[dict[int: int or str: int]]): Валюта оклада
+        statistic (list[dict[int: int or str: int]]): Статистика по вакансиям
     """
 
     def __init__(self, file_name, vacancies_objects):
@@ -211,6 +211,13 @@ class Vacancy:
 
     @staticmethod
     def parse_date_simple(date):
+        """Преобразует дату из одной строки в лист по значениям: год, месяц, день, часы, минуты, секунды, часовой пояс
+
+            Args:
+                date (str): Дата в формате "%Y-%m-%dT%H:%M:%S%z" для разбиения на значения
+            Returns:
+                list: Лист со значениями даты: год, месяц, день, часы, минуты, секунды, часовой пояс
+        """
         date = date.replace('T', '-').replace(':', '-').replace('+', '-')
         year, month, day, hour, minute, second, timezone = date.split('-')
         return year, month, day, hour, minute, second, timezone
@@ -239,9 +246,7 @@ class Salary:
         """Инициализирует объект Salary.
 
         Args:
-            salary_from (str or int or float): Нижняя граница оклада
-            salary_to (str or int or float): Нижняя граница оклада
-            salary_currency (str): Нижняя граница оклада
+            salary (list): Информация об окладе: нижняя граница оклада, верхняя граница оклада, валюта оклада
 
         >>> type(Salary(['123000.0', '987000.0','RUR'])).__name__
         'Salary'
