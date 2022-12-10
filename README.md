@@ -38,3 +38,10 @@
 ## Задание 3.2.1:
 * ### Папка с разделенными на года csv файлами 
 ![Screenshot_11](https://user-images.githubusercontent.com/100992984/206690234-e8b6d315-48c5-4291-866e-731976f0f471.png)
+
+## Задание 3.2.2:
+* ### Сбор статистики без многопроцессорной обработки занимает ~ 25,6 секунд
+   ![no-multi](https://user-images.githubusercontent.com/100992984/206872223-7acbda57-5ebd-485d-85a7-8f3e8f7fdaad.png)
+* ### Сбор статистики с использованием многопроцессорной обработки занимает ~ 7,8 секунд
+   ![multi](https://user-images.githubusercontent.com/100992984/206872252-22efadaa-be31-4954-a958-c86dbb0c5410.png)
+
