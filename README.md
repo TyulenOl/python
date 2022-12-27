@@ -50,3 +50,7 @@
    ![multiprocessing](https://user-images.githubusercontent.com/100992984/206898644-4329c068-f172-46ce-bebd-a1e73cdccdb1.png)
 * ### Время выполнения программы с использованием Concurrent futures - 1,984 секунд
    ![concurrent-futures](https://user-images.githubusercontent.com/100992984/206898668-2a34f47c-d3f9-4739-be6c-7356ccae3cb5.png)
+   
+## Задание 3.3.1:
+* ### Частотность с которой встречаются различные валюты:
+   ![currency_rates](https://user-images.githubusercontent.com/100992984/209714368-d7596fb0-2ce0-4896-9ed5-4dd7e202183e.png)
