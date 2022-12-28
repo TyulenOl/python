@@ -27,8 +27,9 @@ def calculate_currency_frequency(data):
 
 
 def collect_currency_rates(data, currencies):
-    first_date = list(parse_date(data[0][5])[:2])
-    last_date = list(parse_date(data[len(data) - 1][5])[:2])
+    sorted_data = sorted(data, key=lambda vacancy: parse_date(vacancy[5]))
+    first_date = parse_date(sorted_data[0][5])
+    last_date = parse_date(sorted_data[len(sorted_data) - 1][5])
     number_months = (int(last_date[0]) - int(first_date[0])) * 12 + int(last_date[1]) - int(first_date[1]) + 1
     currency_rates = {'date': []}
     currency_rates.update({currency: [] for currency in currencies if currency != 'RUR'})
@@ -48,8 +49,8 @@ def collect_currency_rates(data, currencies):
 
 
 def parse_date(date):
-    year, month, day, hour, minute, second, timezone = date.replace('T', '-').replace(':', '-').replace('+', '-').split('-')
-    return int(year), int(month), int(day), int(hour), int(minute), int(second), int(timezone)
+    parsed_date = date.replace('T', '-').replace(':', '-').replace('+', '-').split('-')
+    return int(parsed_date[0]), int(parsed_date[1])
 
 
 def main():
