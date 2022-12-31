@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report</title>
+    <link rel="stylesheet" href="D:\Tyulenev\Python\3.4\3.4.1\style_city.css">
+</head>
+<body>
+<div class="container flex">
+    <div class="graphs flex">
+        <h2 class="year_graphs_header">Статистика по годам и городам для выбранной профессии и региона в графическом
+            виде</h2>
+        <img class="year_graphs" src="D:\Tyulenev\Python\3.4\3.4.1\graph.png" alt="">
+    </div>
+    <div class="tables flex">
+        <h2 class="year_tables_header">Статистика по годам в табличном виде</h2>
+        {{ year_table.to_html(index=False) | safe}}
+        <div class="tables_wrapper">
+            <h2 class="year_tables_header">Статистика по городам в табличном виде</h2>
+            {{ salary_city_table.to_html(index=False) | safe}}
+            {{ percentage_city_table.to_html(index=False) | safe}}
+        </div>
+    </div>
+</div>
+</body>
+</html>
