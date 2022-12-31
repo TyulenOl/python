@@ -1,0 +1,35 @@
+body {
+    font-family: Verdana, Arial, Helvetica, Geneva, sans-serif;
+}
+
+.container {
+    max-width: 1440px;
+	margin: 0 auto;
+    text-align: center;
+}
+
+.graphs {
+    margin: 0 auto;
+    margin-bottom: 30px;
+}
+
+
+.tables table {
+    border-collapse: collapse;
+}
+
+.tables td, th {
+    text-align: center;
+}
+
+h2 {
+    margin: 0;
+    margin-bottom: 15px;
+}
+
+.flex {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0 auto;
+}
